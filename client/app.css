@@ -1,0 +1,86 @@
+/* query */
+
+.query {
+  margin: 10px 0;
+}
+.query > div,
+.query span {
+  user-select: none;
+}
+label {
+  cursor: pointer;
+}
+.query > label,
+.query > div {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 5px;
+}
+.query > div span,
+.query label span {
+  display: inline-block;
+  width: 100px;
+}
+.query > div label {
+  margin-left: 5px;
+}
+.query > div label:first-of-type {
+  margin-left: 0;
+}
+.query .image {
+  width: 200px; height: 200px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: top left;
+}
+.query input[type=number] {
+  border: 1px solid transparent;
+  margin-left: 5px;
+  transition: all 0.1s;
+}
+.query input[type=number]:focus {
+  border: 1px solid #000;
+}
+.query > div.activeQuery {
+  margin-top: 10px;
+  flex-direction: column;
+}
+.query input[type=radio] {
+  cursor: pointer;
+}
+
+/* results */
+
+.results {
+  margin: 10px 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.results .result {
+  width: 250px;
+  color: #333;
+}
+.results .result .img {
+  text-align: left;
+  height: 300px;
+}
+.results .result img {
+  max-width: 100%;
+  max-height: 300px;
+  cursor: pointer;
+}
+.sha256 {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: pre;
+  max-width: 100%;
+}
+.results .result {
+  margin-bottom: 10px;
+  margin-right: 10px;
+}
+.score.good { color: #080; }
+.score.ok { color: #d80; }
+.score.bad { color: #800; }

@@ -1,0 +1,11 @@
+[Unit]
+Description=VFrame Check uWSGI Instance
+User=vframe
+Group=vframe
+
+[Service]
+ExecStart=/home/vframe/miniconda3/bin/uwsgi --ini /home/vframe/vframe_check_api/nginx/uwsgi.ini
+
+[Install]
+WantedBy=multi-user.target
+

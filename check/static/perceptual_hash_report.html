@@ -1,0 +1,39 @@
+<html>
+<head>
+  <link rel="stylesheet" href="{{ dir_assets }}/css.css">
+</head>
+<body>
+  
+  <h1>Image Duplicates</h1>
+  
+  {% for fname_a, image_group in image_groups %}
+  <h3>Duplicates for {{ fname_a }}</h3>
+  <table class="image_group">
+    <tr>
+      <th>Image A</th>
+      <th>Image B</th>
+      <th>Score</th>
+    </tr>
+    {% for df in image_group.itertuples() %}
+    <tr>
+      <td>
+        <img class="img_match img_match_a" src="{{ dir_ims }}/{{ df.fname_a }}" />
+      </td>
+      <td>
+        <img class="img_match img_match_b" src="{{ dir_ims }}/{{ df.fname_b }}" />  
+      </td>
+        
+      <td class="result_txt">
+        <ul>
+          <li>Filename A:</h5> {{ df.fname_a }}</li>
+          <li>Filename B:<br> {{ df.fname_b }}</li>
+          <li>Score: {{ df.score }}</li>
+        </ul>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endfor %}
+
+</body>
+</html>
