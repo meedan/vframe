@@ -1,0 +1,44 @@
+version: '2.1'
+networks:
+  dev:
+volumes:
+  mysql:
+  redis:
+services:
+  mysql:
+    image: mysql:5
+    environment:
+      - "MYSQL_ALLOW_EMPTY_PASSWORD=yes"
+      - "MYSQL_DATABASE=vframe_check"
+      - "MYSQL_USER=vframe_check"
+      - "MYSQL_PASSWORD=vframe_check"
+    ports:
+      - "3306:3306"
+    volumes:
+      - "mysql:/var/lib/mysql"
+    networks:
+      - dev
+  redis:
+    image: redis:5
+    ports:
+      - "6379:6379"
+    volumes:
+      - "redis:/data"
+    networks:
+      - dev
+  vframe_check:
+    build: .
+    environment:
+      - "DB_HOST=mysql"
+      - "DB_NAME=vframe_check"
+      - "DB_USER=vframe_check"
+      - "DB_PASS=vframe_check"
+      - "FLASK_ENV=development"
+      - "FLASK_DEBUG=1"
+    depends_on:
+      - "mysql"
+      - "redis"
+    ports:
+      - "5000:5000"
+    networks:
+      - dev
