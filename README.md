@@ -64,7 +64,7 @@ python cli_proc.py import --i path/to/your/images/ --e jpg
 Alternatively, import a CSV of image URLs, hosted externally.  The images will be temporarily fetched and processed.
 
 ```
-python cli_proc.py import_csv -i ..data/url_test.csv --field url
+python cli_proc.py import_csv -i ../data/url_test.csv --field url
 ```
 
 ## Development
