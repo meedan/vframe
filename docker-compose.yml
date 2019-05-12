@@ -14,7 +14,7 @@ services:
       - "MYSQL_USER=vframe_check"
       - "MYSQL_PASSWORD=vframe_check"
     ports:
-      - "3310:3306"
+      - "3306:3306"
     volumes:
       - "mysql:/var/lib/mysql"
     networks:
@@ -22,7 +22,7 @@ services:
   redis:
     image: redis:5
     ports:
-      - "6389:6379"
+      - "6379:6379"
     volumes:
       - "redis:/data"
     networks:
