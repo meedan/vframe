@@ -159,3 +159,4 @@ flask.log.*
 
 *.sql
 
+.idea
