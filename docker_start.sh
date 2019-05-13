@@ -1,9 +1,9 @@
 #!/bin/bash
-xhost +local:docker
+xhost +local:docker  # X11 display
 
 IMAGE=vframe:ubuntu-18.04
 docker images $IMAGE
-USER="ubuntu"
+USER="root"
 GITHUB_REPO='https://github.com/adamhrv/vframe_check_api'
 
 # Jupyter notebook port
@@ -22,8 +22,9 @@ fi
 
 docker_port="$port:$port"
 
-DIR_PROJECT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-DIR_DATA="$DIR_PROJECT/data"
+# directory for local data
+dir_project="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+dir_data="$DIR_PROJECT/data"
 
 
 # --------------------------------------------------------
@@ -37,14 +38,14 @@ echo "
      \/   |_|    |_|  \_\/_/    \_\_|  |_|______|
 
 VFRAME: Check API 
-Shared data directory: $DIR_DATA
+Shared data directory: $dir_data
 Github: $GITHUB_REPO
 "
 
 docker run -it --privileged \
     --hostname $(hostname|sed -e 's/ubuntu-//')-vframe \
     --volume /tmp/.X11-unix:/tmp/.X11-unix \
-    --volume="$DIR_DATA:/data" \
+    --volume="$dir_data:/data" \
     -e DISPLAY=unix$DISPLAY \
     -p $docker_port \
     -e "USER_HTTP=1" \
