@@ -1,4 +1,4 @@
-name: vframe_check
+name: vframe
 channels:
   - conda-forge
   - defaults
