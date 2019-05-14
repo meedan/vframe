@@ -7,9 +7,6 @@ set -e
 # Init conda env
 source activate vframe
 
-/bin/bash
-exit 0
-
 # Add these to Dockerfile after tested
 
 # build JS

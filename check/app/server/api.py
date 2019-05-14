@@ -2,9 +2,11 @@ import io
 import os
 import re
 import time
-import numpy as np
 import logging
+from pathlib import Path
 import urllib.request
+
+import numpy as np
 from flask import Blueprint, request, jsonify
 from PIL import Image
 
@@ -79,6 +81,7 @@ def get_params(default_threshold=MATCH_THRESHOLD, default_limit=MATCH_LIMIT):
   # Fetch remote URL
   else:
     url = request.form.get('url')
+    ext = Path(url).suffix.replace('.','')
     raw, im = fetch_url(url)
     if raw is None:
       return raw, im # error
