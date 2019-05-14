@@ -14,19 +14,19 @@ services:
       - "MYSQL_USER=vframe_check"
       - "MYSQL_PASSWORD=vframe_check"
     ports:
-      - "3306:3306"
+      - "3307:3307"
     volumes:
       - "mysql:/var/lib/mysql"
     networks:
       - dev
-  redis:
-    image: redis:5
-    ports:
-      - "6379:6379"
-    volumes:
-      - "redis:/data"
-    networks:
-      - dev
+#  redis:
+#    image: redis:5
+#    ports:
+#      - "6379:6379"
+#    volumes:
+#      - "redis:/data"
+#    networks:
+#      - dev
   api:
     build: .
     environment:
@@ -38,7 +38,7 @@ services:
       - "FLASK_DEBUG=1"
     depends_on:
       - "mysql"
-      - "redis"
+#      - "redis"
     ports:
       - "5000:5000"
     networks:
