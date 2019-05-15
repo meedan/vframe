@@ -4,7 +4,7 @@ networks:
     driver: bridge
 volumes:
   mysql:
-  redis:
+#  redis:
 services:
   mysql:
     image: mysql:5
