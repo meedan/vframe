@@ -4,7 +4,7 @@ networks:
     driver: bridge
 volumes:
   mysql:
-  redis:
+#  redis:
 services:
   mysql:
     image: mysql:5
@@ -15,6 +15,7 @@ services:
       - "MYSQL_PASSWORD=vframe_check"
     ports:
       - "3307:3307"
+      - "3306:3306"
     volumes:
       - "mysql:/var/lib/mysql"
     networks:
