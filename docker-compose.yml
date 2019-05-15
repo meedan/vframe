@@ -14,7 +14,7 @@ services:
       - "MYSQL_USER=vframe_check"
       - "MYSQL_PASSWORD=vframe_check"
     ports:
-      - "3307:3307"
+      - "3306:3306"
     volumes:
       - "mysql:/var/lib/mysql"
     networks:

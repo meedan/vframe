@@ -42,6 +42,7 @@ def cli(ctx, opt_input_fn, opt_base_url, opt_field):
   import glob
   import io
   import random
+  from pathlib import Path
 
   from PIL import Image
 
@@ -56,10 +57,10 @@ def cli(ctx, opt_input_fn, opt_base_url, opt_field):
   log = logger_utils.Logger.getLogger()
 
   def add_url(url):
-    fname, ext = os.path.splitext(url)
+    ext = Path(url).suffix.replace('.','')
     if ext not in app_cfg.IMAGE_EXTS:
+      log.warn(f'invalid extension: {ext} in url: {url}')
       return
-    ext = ext[1:]
     try:
       raw, im = fetch_url(url)
     except:
@@ -73,6 +74,8 @@ def cli(ctx, opt_input_fn, opt_base_url, opt_field):
   rows = load_csv(opt_input_fn)
   urls = [opt_base_url + row['url'] for row in rows]
   random.shuffle(urls)
-  log.info('Parallelizing import')
-  parallelize(urls, add_url)
+  for url in urls:
+    add_url(url)
+  #log.info('Parallelizing import')
+  #parallelize(urls, add_url)
 
