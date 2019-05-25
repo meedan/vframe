@@ -134,6 +134,7 @@ backend/static/*
 *.swp
 *.pkl
 
+.git/
 .git-old/
 data_store/
 

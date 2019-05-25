@@ -10,9 +10,9 @@ services:
     image: mysql:5
     environment:
       - "MYSQL_ALLOW_EMPTY_PASSWORD=yes"
-      - "MYSQL_DATABASE=vframe_check"
-      - "MYSQL_USER=vframe_check"
-      - "MYSQL_PASSWORD=vframe_check"
+      - "MYSQL_DATABASE=vframe"
+      - "MYSQL_USER=vframe"
+      - "MYSQL_PASSWORD=vframe"
     ports:
       - "3306:3306"
     volumes:
@@ -27,18 +27,18 @@ services:
 #      - "redis:/data"
 #    networks:
 #      - dev
-  api:
+  vframe:
     build: .
     environment:
       - "DB_HOST=mysql"
-      - "DB_NAME=vframe_check"
-      - "DB_USER=vframe_check"
-      - "DB_PASS=vframe_check"
+      - "DB_NAME=vframe"
+      - "DB_USER=vframe"
+      - "DB_PASS=vframe"
       - "FLASK_ENV=development"
       - "FLASK_DEBUG=1"
     depends_on:
-      - "mysql"
-#      - "redis"
+      - mysql
+#      - redis
     ports:
       - "5000:5000"
     networks:

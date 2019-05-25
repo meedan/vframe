@@ -1,7 +1,7 @@
 # ------------------------------------------------------
 #
 # VFRAME: Check Image Service API
-# https://github.com/adamhrv/vframe_check_api
+# https://github.com/meedan/vframe
 #
 # ------------------------------------------------------
 
@@ -32,11 +32,11 @@ RUN apt update
 ENV DOCKER_USER root
 ENV USER_DIR /root
 WORKDIR ${USER_DIR}
-ENV VFRAME_CHECK_DIR vframe_check_api
+ENV VFRAME_DIR vframe
 
 # [ Install ZSH, in home directory ]
 
-RUN apt install -y zsh 
+RUN apt install -y zsh
 RUN git clone git://github.com/robbyrussell/oh-my-zsh.git ${USER_DIR}/.oh-my-zsh
 RUN cp /${DOCKER_USER}/.oh-my-zsh/templates/zshrc.zsh-template ${USER_DIR}/.zshrc
 #RUN chsh -s $(which zsh)
@@ -75,13 +75,13 @@ RUN ln -sf ${NVM_DIR}/versions/node/v${NODE_VERSION}/bin/node /usr/bin/node
 RUN ln -sf ${NVM_DIR}/versions/node/v${NODE_VERSION}/bin/npm /usr/bin/npm
 
 
-# [ build conda env ] 
+# [ build conda env ]
 # keep towards end since environment.yml changes more often
 # this works but should be revisited. the (vframe) bash prompt does not appear
 
 WORKDIR ${USER_DIR}
-COPY environment.yml ${USER_DIR}/${VFRAME_CHECK_DIR}/
-WORKDIR ${USER_DIR}/${VFRAME_CHECK_DIR}/
+COPY environment.yml ${USER_DIR}/${VFRAME_DIR}/
+WORKDIR ${USER_DIR}/${VFRAME_DIR}/
 RUN conda env create -f environment.yml
 
 RUN conda init bash
@@ -94,10 +94,10 @@ CMD ['/bin/bash', '-c', 'conda activate vframe']  #RUN conda activate vframe
 
 # [ Entrypoint ]
 
-WORKDIR ${USER_DIR}/${VFRAME_CHECK_DIR}/
+WORKDIR ${USER_DIR}/${VFRAME_DIR}/
 COPY . .
-#RUN git clone https://github.com/vishnubob/wait-for-it  # For Redis (not yet needed)
-RUN chmod +x ./docker_entrypoint.sh
-CMD ["/bin/bash", "-c", "./docker_entrypoint.sh"]
+# RUN git clone https://github.com/vishnubob/wait-for-it
+RUN chmod +x ./docker-entrypoint.sh
+CMD ["/bin/bash", "-c", "./docker-entrypoint.sh"]
 
 
