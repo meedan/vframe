@@ -96,8 +96,8 @@ CMD ['/bin/bash', '-c', 'conda activate vframe']  #RUN conda activate vframe
 
 WORKDIR ${USER_DIR}/${VFRAME_DIR}/
 COPY . .
-# RUN git clone https://github.com/vishnubob/wait-for-it
-RUN chmod +x ./docker-entrypoint.sh
-CMD ["/bin/bash", "-c", "./docker-entrypoint.sh"]
+COPY ./docker-entrypoint.sh /
+RUN chmod +x /docker-entrypoint.sh
+CMD ["/bin/bash", "-c", "/docker-entrypoint.sh"]
 
 

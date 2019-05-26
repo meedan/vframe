@@ -4,7 +4,6 @@ networks:
     driver: bridge
 volumes:
   mysql:
-#  redis:
 services:
   mysql:
     image: mysql:5
@@ -19,16 +18,10 @@ services:
       - "mysql:/var/lib/mysql"
     networks:
       - dev
-#  redis:
-#    image: redis:5
-#    ports:
-#      - "6379:6379"
-#    volumes:
-#      - "redis:/data"
-#    networks:
-#      - dev
   vframe:
     build: .
+    volumes:
+      - ".:/root/vframe"
     environment:
       - "DB_HOST=mysql"
       - "DB_NAME=vframe"
@@ -38,7 +31,6 @@ services:
       - "FLASK_DEBUG=1"
     depends_on:
       - mysql
-#      - redis
     ports:
       - "5000:5000"
     networks:

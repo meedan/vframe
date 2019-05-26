@@ -1,6 +1,7 @@
 import os
 import glob
 import time
+import json
 import pandas as pd
 
 from PIL import Image
@@ -8,6 +9,7 @@ from PIL import Image
 from sqlalchemy import create_engine, Table, Column, String, Integer, BigInteger, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy_utils import JSONType
 
 from app.settings import app_cfg
 
@@ -34,6 +36,7 @@ class FileTable(Base):
   phash = Column(BigInteger, nullable=False, index=True)
   ext = Column(String(4, convert_unicode=True), nullable=False)
   url = Column(String(255, convert_unicode=True), nullable=False)
+  context = Column(JSONType)
   def toJSON(self):
     return {
       'id': self.id,
@@ -41,6 +44,7 @@ class FileTable(Base):
       'phash': self.phash,
       'ext': self.ext,
       'url': self.url,
+      'context': self.context
     }
 
 Base.metadata.create_all(engine)
@@ -51,16 +55,24 @@ def search_by_phash(phash, threshold=6, limit=1, offset=0):
   # connection = engine.connect()
   session = Session()
   cmd = """
-    SELECT files.*, BIT_COUNT(phash ^ :phash) 
-    AS hamming_distance FROM files 
-    HAVING hamming_distance < :threshold 
-    ORDER BY hamming_distance ASC 
+    SELECT files.*, BIT_COUNT(phash ^ :phash)
+    AS hamming_distance FROM files
+    HAVING hamming_distance < :threshold
+    ORDER BY hamming_distance ASC
     LIMIT :limit
     OFFSET :offset
   """
   matches = session.execute(text(cmd), { 'phash': phash, 'threshold': threshold, 'limit': limit, 'offset': offset }).fetchall()
-  keys = ('id', 'sha256', 'phash', 'ext', 'url', 'score')
+  keys = ('id', 'sha256', 'phash', 'ext', 'url', 'context', 'score')
   results = [ dict(zip(keys, values)) for values in matches ]
+
+  # I expected SqlAlchemy to take care of this but it didn't :-(
+  for r in results:
+    try:
+      r['context'] = json.loads(r['context'])
+    except:
+      r['context'] = None
+
   session.close()
   return results
 
@@ -71,16 +83,16 @@ def search_by_hash(hash):
   session.close()
   return result
 
-def add_phash(sha256=None, phash=None, ext=None, url=None):
+def add_phash(sha256=None, phash=None, ext=None, url=None, context={}):
   """Add a file to the table"""
-  rec = FileTable(sha256=sha256, phash=phash, ext=ext, url=url)
+  rec = FileTable(sha256=sha256, phash=phash, ext=ext, url=url, context=context)
   session = Session()
   session.add(rec)
   session.commit()
   session.flush()
 
 
-def add_phash_by_filename(path):
+def add_phash_by_filename(path, context={}):
   """Add a file by filename, getting all the necessary attributes"""
   print(path)
   if not os.path.exists(path):
@@ -99,4 +111,4 @@ def add_phash_by_filename(path):
 
   hash = sha256(path)
 
-  add_phash(sha256=hash, phash=phash, ext=ext, url=path)
+  add_phash(sha256=hash, phash=phash, ext=ext, url=path, context=context)

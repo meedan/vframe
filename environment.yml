@@ -75,8 +75,10 @@ dependencies:
     - scipy==1.2.1
     - six==1.12.0
     - sqlalchemy==1.3.3
+    - sqlalchemy-json==0.2.3
+    - sqlalchemy-utils==0.33.11
     - tqdm==4.31.1
     - urllib3==1.24.1
     - werkzeug==0.15.2
-prefix: /home/adam/anaconda3/envs/vframe_check
+prefix: /opt/conda/envs/vframe
 
