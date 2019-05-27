@@ -1,7 +1,7 @@
 stages:
   - build
 
-build:
+build_qa:
   image: docker:latest
   services:
     - docker:dind
