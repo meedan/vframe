@@ -1,0 +1,24 @@
+stages:
+  - build
+
+build:
+  image: docker:latest
+  services:
+    - docker:dind
+  tags:
+    - meedan
+    - meedan-labs
+  stage: build
+  variables:
+    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+  script:
+    - apk add --no-cache curl jq python py-pip git
+    - pip install awscli
+    - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build  -f Dockerfile -t "$QA_ECR_API_BASE_URL:$CI_COMMIT_SHA"  .
+    - docker push "$QA_ECR_API_BASE_URL:$CI_COMMIT_SHA"
+  only:
+    - feature/7594-aws-deploy
+
