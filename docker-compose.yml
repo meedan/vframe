@@ -29,13 +29,8 @@ services:
 #      - dev
   vframe:
     build: .
-    environment:
-      - "DB_HOST=mysql"
-      - "DB_NAME=vframe"
-      - "DB_USER=vframe"
-      - "DB_PASS=vframe"
-      - "FLASK_ENV=development"
-      - "FLASK_DEBUG=1"
+    env_file:
+      - .env_file
     depends_on:
       - mysql
 #      - redis
