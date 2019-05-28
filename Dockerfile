@@ -89,7 +89,8 @@ RUN conda config --set auto_activate_base false
 RUN conda config --set report_errors false
 RUN conda config --set auto_activate_base false
 CMD ['/bin/bash', '-c', 'source ~/.bashrc']
-CMD ['/bin/bash', '-c', 'conda activate vframe']  #RUN conda activate vframe
+# RUN conda activate vframe
+CMD ['/bin/bash', '-c', 'conda activate vframe']
 
 
 # [ Entrypoint ]
