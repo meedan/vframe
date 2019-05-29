@@ -2,7 +2,7 @@
 
 To run any of the commands, first activate the appropriate conda environment, e.g. `conda activate vframe`.
 
-The scripts can all be found in the `check` folder at the base of the repo.  Further info on the scripts can be found by adding the CLI argument ``--help``
+The scripts can all be found in the `api` folder at the base of the repo.  Further info on the scripts can be found by adding the CLI argument ``--help``
 
 
 ## Production commands

@@ -11,4 +11,4 @@ source activate vframe
 npm i && npm run buildDev
 
 # run Flask app
-cd check && python cli_flask.py run --host=0.0.0.0
+cd api && python cli_flask.py run --host=0.0.0.0
