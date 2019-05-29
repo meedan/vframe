@@ -43,8 +43,6 @@ dependencies:
     - markupsafe==1.1.1
     - matplotlib==3.0.3
     - multiprocess==0.70.7
-    - mysql-connector==2.2.9
-    - mysql-connector-python==8.0.16
     - networkx==2.3
     - numpy==1.16.3
     - opencv-python==4.1.0.25
@@ -55,6 +53,7 @@ dependencies:
     - pox==0.2.5
     - ppft==1.6.4.9
     - protobuf==3.7.1
+    - psycopg2-binary==2.8.2
     - public==2019.4.13
     - pycosat==0.6.3
     - pycparser==2.19

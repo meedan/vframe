@@ -3,19 +3,16 @@ networks:
   dev:
     driver: bridge
 volumes:
-  mysql:
+  postgres:
 services:
-  mysql:
-    image: mysql:5
-    environment:
-      - "MYSQL_ALLOW_EMPTY_PASSWORD=yes"
-      - "MYSQL_DATABASE=vframe"
-      - "MYSQL_USER=vframe"
-      - "MYSQL_PASSWORD=vframe"
+  postgres:
+    image: postgres:9.6
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - "mysql:/var/lib/mysql"
+      - "postgres:/var/lib/postgresql/data"
+    environment:
+      POSTGRES_PASSWORD: postgres
     networks:
       - dev
   vframe:
@@ -23,14 +20,14 @@ services:
     volumes:
       - ".:/root/vframe"
     environment:
-      - "DB_HOST=mysql"
+      - "DB_HOST=postgres"
       - "DB_NAME=vframe"
-      - "DB_USER=vframe"
-      - "DB_PASS=vframe"
+      - "DB_USER=postgres"
+      - "DB_PASS=postgres"
       - "FLASK_ENV=development"
       - "FLASK_DEBUG=1"
     depends_on:
-      - mysql
+      - postgres
     ports:
       - "5000:5000"
     networks:

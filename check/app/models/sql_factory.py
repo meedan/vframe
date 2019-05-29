@@ -6,17 +6,19 @@ import pandas as pd
 
 from PIL import Image
 
+import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, String, Integer, BigInteger, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy_utils import JSONType
+from sqlalchemy_utils import JSONType, database_exists, create_database
+from sqlalchemy.schema import DDL
 
 from app.settings import app_cfg
 
 from app.utils.im_utils import compute_phash_int
 from app.utils.file_utils import sha256
 
-connection_url = "mysql+mysqlconnector://{}:{}@{}/{}?charset=utf8mb4".format(
+connection_url = "postgresql+psycopg2://{}:{}@{}/{}".format(
   os.getenv("DB_USER"),
   os.getenv("DB_PASS"),
   os.getenv("DB_HOST"),
@@ -27,6 +29,24 @@ loaded = False
 engine = create_engine(connection_url, encoding="utf-8", pool_recycle=3600)
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
+
+# Create database if needed.
+if not database_exists(engine.url):
+  create_database(engine.url)
+
+# Create the bit_count function.
+# https://stackoverflow.com/a/30397705/209184
+# https://stackoverflow.com/q/46280722/209184
+sqlalchemy.event.listen(
+    Base.metadata,
+    'before_create',
+    DDL("""
+      CREATE OR REPLACE FUNCTION bit_count(value bigint)
+      RETURNS integer
+      AS $$ SELECT length(replace(value::bit(64)::text,'0','')); $$
+      LANGUAGE SQL IMMUTABLE STRICT;
+    """)
+)
 
 class FileTable(Base):
   """Table for storing various hashes of images"""
@@ -49,15 +69,16 @@ class FileTable(Base):
 
 Base.metadata.create_all(engine)
 
-
 def search_by_phash(phash, threshold=6, limit=1, offset=0):
   """Search files for a particular phash"""
   # connection = engine.connect()
   session = Session()
   cmd = """
-    SELECT files.*, BIT_COUNT(phash ^ :phash)
-    AS hamming_distance FROM files
-    HAVING hamming_distance < :threshold
+    SELECT * FROM (
+      SELECT files.*, BIT_COUNT(phash # :phash)
+      AS hamming_distance FROM files
+    ) f
+    WHERE hamming_distance < :threshold
     ORDER BY hamming_distance ASC
     LIMIT :limit
     OFFSET :offset
@@ -65,13 +86,6 @@ def search_by_phash(phash, threshold=6, limit=1, offset=0):
   matches = session.execute(text(cmd), { 'phash': phash, 'threshold': threshold, 'limit': limit, 'offset': offset }).fetchall()
   keys = ('id', 'sha256', 'phash', 'ext', 'url', 'context', 'score')
   results = [ dict(zip(keys, values)) for values in matches ]
-
-  # I expected SqlAlchemy to take care of this but it didn't :-(
-  for r in results:
-    try:
-      r['context'] = json.loads(r['context'])
-    except:
-      r['context'] = None
 
   session.close()
   return results
