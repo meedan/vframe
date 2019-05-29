@@ -59,6 +59,7 @@ def get_params(default_threshold=MATCH_THRESHOLD, default_limit=MATCH_LIMIT):
     limit = int(request.form.get('limit') or default_limit)
     offset = int(request.form.get('offset') or 0)
     context = json.loads(request.form.get('context') or '{}')
+    filter =  json.loads(request.form.get('filter') or '{}')
   except:
     return None, 'param_error'
 
@@ -87,7 +88,7 @@ def get_params(default_threshold=MATCH_THRESHOLD, default_limit=MATCH_LIMIT):
     raw, im = fetch_url(url)
     if raw is None:
       return raw, im # error
-  return (threshold, limit, offset, url, ext, raw, im, context,), None
+  return (threshold, limit, offset, url, ext, raw, im, context, filter,), None
 
 
 @api.route('/v1/match', methods=['POST'])
@@ -104,22 +105,20 @@ def match():
       'error': error,
     })
 
-  threshold, limit, offset, url, ext, raw, im, context = params
+  threshold, limit, offset, url, ext, raw, im, context, filter = params
 
   start = time.time()
 
   phash = compute_phash_int(im)
 
-  results = search_by_phash(phash=phash, threshold=MATCH_THRESHOLD, limit=limit, offset=0)
+  results = search_by_phash(phash=phash, threshold=MATCH_THRESHOLD, limit=limit, offset=0, filter=filter)
   match = False
   added = False
 
   if len(results) == 0:
     if url:
-      # hash = sha256_stream(file)
       hash = sha256_stream(io.BytesIO(raw))
-      add_phash(sha256=hash, phash=phash, ext=ext, url=url, context=context)
-      added = True
+      added = add_phash(sha256=hash, phash=phash, ext=ext, url=url, context=context)
   else:
     match = True
 
@@ -147,14 +146,14 @@ def similar():
       'error': error,
     })
 
-  threshold, limit, offset, url, ext, raw, im, context = params
+  threshold, limit, offset, url, ext, raw, im, context, filter = params
 
   start = time.time()
 
   phash = compute_phash_int(im)
   ext = ext[1:].lower()
 
-  results = search_by_phash(phash=phash, threshold=threshold, limit=limit, offset=offset)
+  results = search_by_phash(phash=phash, threshold=threshold, limit=limit, offset=offset, filter=filter)
 
   if len(results) == 0:
     match = False
