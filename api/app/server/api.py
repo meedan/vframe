@@ -3,6 +3,7 @@ import os
 import re
 import time
 import logging
+import json
 from pathlib import Path
 import urllib.request
 
@@ -57,9 +58,10 @@ def get_params(default_threshold=MATCH_THRESHOLD, default_limit=MATCH_LIMIT):
     threshold = int(request.form.get('threshold') or default_threshold)
     limit = int(request.form.get('limit') or default_limit)
     offset = int(request.form.get('offset') or 0)
+    context = json.loads(request.form.get('context') or '{}')
   except:
     return None, 'param_error'
-  
+
   # Process uploaded file
   if 'q' in request.files:
     file = request.files['q']
@@ -71,7 +73,7 @@ def get_params(default_threshold=MATCH_THRESHOLD, default_limit=MATCH_LIMIT):
 
     basename, ext = os.path.splitext(fn)
     if ext.lower() not in valid_exts:
-      return None, 'not_an_image' 
+      return None, 'not_an_image'
     ext = ext[1:].lower()
 
     raw = None
@@ -85,7 +87,7 @@ def get_params(default_threshold=MATCH_THRESHOLD, default_limit=MATCH_LIMIT):
     raw, im = fetch_url(url)
     if raw is None:
       return raw, im # error
-  return (threshold, limit, offset, url, ext, raw, im,), None
+  return (threshold, limit, offset, url, ext, raw, im, context,), None
 
 
 @api.route('/v1/match', methods=['POST'])
@@ -102,7 +104,7 @@ def match():
       'error': error,
     })
 
-  threshold, limit, offset, url, ext, raw, im = params
+  threshold, limit, offset, url, ext, raw, im, context = params
 
   start = time.time()
 
@@ -116,7 +118,7 @@ def match():
     if url:
       # hash = sha256_stream(file)
       hash = sha256_stream(io.BytesIO(raw))
-      add_phash(sha256=hash, phash=phash, ext=ext, url=url)
+      add_phash(sha256=hash, phash=phash, ext=ext, url=url, context=context)
       added = True
   else:
     match = True
@@ -145,7 +147,7 @@ def similar():
       'error': error,
     })
 
-  threshold, limit, offset, url, ext, raw, im = params
+  threshold, limit, offset, url, ext, raw, im, context = params
 
   start = time.time()
 

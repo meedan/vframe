@@ -7,11 +7,8 @@ set -e
 # Init conda env
 source activate vframe
 
-# Add these to Dockerfile after tested
-
 # build JS
 npm i && npm run buildDev
 
 # run Flask app
-cd check && python cli_flask.py run --host=0.0.0.0
-
+cd api && python cli_flask.py run --host=0.0.0.0

@@ -4,7 +4,7 @@ The VFRAME Check API Service uses perceptual hash to disambiguate similar images
 
 ## Path Structure
 
-- `check` - Python app / `click` cli.
+- `api` - Python app / `click` cli.
 - `client` - React frontend
 - `docs` - Documentation
 - `nginx` - Sample configuration files for deployment
@@ -29,7 +29,7 @@ CREATE USER 'vframe_check'@'localhost' IDENTIFIED BY 'some_new_password';
 GRANT ALL PRIVILEGES ON vframe_check.* to 'vframe_check'@'localhost';
 ```
 
-Create a file called `.env` and put it inside the `check` folder at the root of this repo:
+Create a file called `.env` and put it inside the `api` folder at the root of this repo:
 
 ```
 DB_HOST=localhost
@@ -38,7 +38,7 @@ DB_USER=vframe_check
 DB_PASS=some_new_password
 ```
 
-Install Conda or Miniconda, then install the `vframe_check` conda environement:
+Install Conda or Miniconda, then install the `vframe` conda environement:
 
 ```
 conda env create -f environment.yml
@@ -53,7 +53,7 @@ python cli_proc.py
 
 ## Importing Images
 
-The initial dataset can be hosted locally for now - make sure files are accessible inside `check/static/`.  These paths will be added directly to the dataset. These 3 examples all run the same command:
+The initial dataset can be hosted locally for now - make sure files are accessible inside `api/static/`.  These paths will be added directly to the dataset. These 3 examples all run the same command:
 
 ```
 python cli_proc.py import
@@ -78,7 +78,7 @@ npm run watch
 Run the development server:
 
 ```
-cd check
+cd api
 python cli_flask.py run
 ```
 
