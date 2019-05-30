@@ -10,15 +10,16 @@ import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, String, Integer, BigInteger, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy_utils import JSONType, database_exists, create_database
+from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.schema import DDL
+from sqlalchemy.dialects.postgresql import JSONB
 
 from app.settings import app_cfg
 
 from app.utils.im_utils import compute_phash_int
 from app.utils.file_utils import sha256
 
-connection_url = "postgresql+psycopg2://{}:{}@{}/{}".format(
+connection_url = "postgresql+psycopg2://{}:{}@{}/{}?client_encoding=utf8".format(
   os.getenv("DB_USER"),
   os.getenv("DB_PASS"),
   os.getenv("DB_HOST"),
@@ -56,7 +57,7 @@ class FileTable(Base):
   phash = Column(BigInteger, nullable=False, index=True)
   ext = Column(String(4, convert_unicode=True), nullable=False)
   url = Column(String(255, convert_unicode=True), nullable=False)
-  context = Column(JSONType)
+  context = Column(JSONB(), default={}, nullable=False, index=True)
   def toJSON(self):
     return {
       'id': self.id,
@@ -69,24 +70,31 @@ class FileTable(Base):
 
 Base.metadata.create_all(engine)
 
-def search_by_phash(phash, threshold=6, limit=1, offset=0):
+def search_by_phash(phash, threshold=6, limit=1, offset=0, filter={}):
   """Search files for a particular phash"""
   # connection = engine.connect()
   session = Session()
+
   cmd = """
     SELECT * FROM (
       SELECT files.*, BIT_COUNT(phash # :phash)
       AS hamming_distance FROM files
     ) f
     WHERE hamming_distance < :threshold
+    AND context @> (:filter)::jsonb
     ORDER BY hamming_distance ASC
     LIMIT :limit
     OFFSET :offset
   """
-  matches = session.execute(text(cmd), { 'phash': phash, 'threshold': threshold, 'limit': limit, 'offset': offset }).fetchall()
+  matches = session.execute(text(cmd), {
+    'phash': phash,
+    'threshold': threshold,
+    'limit': limit,
+    'offset': offset,
+    'filter': json.dumps(filter)
+  }).fetchall()
   keys = ('id', 'sha256', 'phash', 'ext', 'url', 'context', 'score')
   results = [ dict(zip(keys, values)) for values in matches ]
-
   session.close()
   return results
 
@@ -101,10 +109,15 @@ def add_phash(sha256=None, phash=None, ext=None, url=None, context={}):
   """Add a file to the table"""
   rec = FileTable(sha256=sha256, phash=phash, ext=ext, url=url, context=context)
   session = Session()
-  session.add(rec)
-  session.commit()
-  session.flush()
+  try:
+    session.add(rec)
+    session.commit()
+    session.flush()
+  except sqlalchemy.exc.IntegrityError:
+    session.rollback()
+    return False
 
+  return True
 
 def add_phash_by_filename(path, context={}):
   """Add a file by filename, getting all the necessary attributes"""
@@ -122,7 +135,5 @@ def add_phash_by_filename(path, context={}):
 
   im = Image.open(path).convert('RGB')
   phash = compute_phash_int(im)
-
   hash = sha256(path)
-
   add_phash(sha256=hash, phash=phash, ext=ext, url=path, context=context)
