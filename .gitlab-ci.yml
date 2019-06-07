@@ -21,7 +21,7 @@ build_qa:
     - docker build  -f Dockerfile -t "$QA_ECR_API_BASE_URL:$CI_COMMIT_SHA"  .
     - docker push "$QA_ECR_API_BASE_URL:$CI_COMMIT_SHA"
   only:
-    - feature/7594-aws-deploy
+    - develop
 
 deploy_qa:
   image: python:3-alpine
@@ -41,4 +41,4 @@ deploy_qa:
     - ecs deploy ecs-qa  qa-vframe --image qa-vframe-c $QA_ECR_API_BASE_URL:$CI_COMMIT_SHA -e qa-vframe-c DB_USER $DB_USER -e qa-vframe-c DB_PASS $DB_PASS -e qa-vframe-c DB_HOST $DB_HOST -e qa-vframe-c DB_NAME $DB_NAME --timeout -1
     - echo "new Image was deployed $QA_ECR_API_BASE_URL:$CI_COMMIT_SHA"
   only:
-    - feature/7594-aws-deploy
+    - develop
