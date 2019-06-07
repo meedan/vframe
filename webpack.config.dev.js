@@ -10,7 +10,7 @@ module.exports = {
     main: './client/index.js'
   },
   output: {
-    path: path.resolve(__dirname, 'check/static/assets/js/dist'),
+    path: path.resolve(__dirname, 'api/static/assets/js/dist'),
     filename: 'index.js',
   },
   devtool: 'inline-source-map',

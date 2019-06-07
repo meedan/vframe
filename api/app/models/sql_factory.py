@@ -1,20 +1,25 @@
 import os
 import glob
 import time
+import json
 import pandas as pd
 
 from PIL import Image
 
-from sqlalchemy import create_engine, Table, Column, String, Integer, BigInteger, text
+import sqlalchemy
+from sqlalchemy import create_engine, Table, Column, Index, String, Integer, BigInteger, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy_utils import database_exists, create_database
+from sqlalchemy.schema import DDL
+from sqlalchemy.dialects.postgresql import JSONB
 
 from app.settings import app_cfg
 
 from app.utils.im_utils import compute_phash_int
 from app.utils.file_utils import sha256
 
-connection_url = "mysql+mysqlconnector://{}:{}@{}/{}?charset=utf8mb4".format(
+connection_url = "postgresql+psycopg2://{}:{}@{}/{}?client_encoding=utf8".format(
   os.getenv("DB_USER"),
   os.getenv("DB_PASS"),
   os.getenv("DB_HOST"),
@@ -26,6 +31,24 @@ engine = create_engine(connection_url, encoding="utf-8", pool_recycle=3600)
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
 
+# Create database if needed.
+if not database_exists(engine.url):
+  create_database(engine.url)
+
+# Create the bit_count function.
+# https://stackoverflow.com/a/30397705/209184
+# https://stackoverflow.com/q/46280722/209184
+sqlalchemy.event.listen(
+    Base.metadata,
+    'before_create',
+    DDL("""
+      CREATE OR REPLACE FUNCTION bit_count(value bigint)
+      RETURNS integer
+      AS $$ SELECT length(replace(value::bit(64)::text,'0','')); $$
+      LANGUAGE SQL IMMUTABLE STRICT;
+    """)
+)
+
 class FileTable(Base):
   """Table for storing various hashes of images"""
   __tablename__ = os.getenv("DB_TABLE") or 'files'
@@ -34,6 +57,11 @@ class FileTable(Base):
   phash = Column(BigInteger, nullable=False, index=True)
   ext = Column(String(4, convert_unicode=True), nullable=False)
   url = Column(String(255, convert_unicode=True), nullable=False)
+  context = Column(JSONB(), default={}, nullable=False)
+  __table_args__ = (
+    Index('ix_files_context', context, postgresql_using='gin'),
+  )
+
   def toJSON(self):
     return {
       'id': self.id,
@@ -41,25 +69,35 @@ class FileTable(Base):
       'phash': self.phash,
       'ext': self.ext,
       'url': self.url,
+      'context': self.context
     }
 
 Base.metadata.create_all(engine)
 
-
-def search_by_phash(phash, threshold=6, limit=1, offset=0):
+def search_by_phash(phash, threshold=6, limit=1, offset=0, filter={}):
   """Search files for a particular phash"""
   # connection = engine.connect()
   session = Session()
+
   cmd = """
-    SELECT files.*, BIT_COUNT(phash ^ :phash) 
-    AS hamming_distance FROM files 
-    HAVING hamming_distance < :threshold 
-    ORDER BY hamming_distance ASC 
+    SELECT * FROM (
+      SELECT files.*, BIT_COUNT(phash # :phash)
+      AS hamming_distance FROM files
+    ) f
+    WHERE hamming_distance < :threshold
+    AND context @> (:filter)::jsonb
+    ORDER BY hamming_distance ASC
     LIMIT :limit
     OFFSET :offset
   """
-  matches = session.execute(text(cmd), { 'phash': phash, 'threshold': threshold, 'limit': limit, 'offset': offset }).fetchall()
-  keys = ('id', 'sha256', 'phash', 'ext', 'url', 'score')
+  matches = session.execute(text(cmd), {
+    'phash': phash,
+    'threshold': threshold,
+    'limit': limit,
+    'offset': offset,
+    'filter': json.dumps(filter)
+  }).fetchall()
+  keys = ('id', 'sha256', 'phash', 'ext', 'url', 'context', 'score')
   results = [ dict(zip(keys, values)) for values in matches ]
   session.close()
   return results
@@ -71,16 +109,21 @@ def search_by_hash(hash):
   session.close()
   return result
 
-def add_phash(sha256=None, phash=None, ext=None, url=None):
+def add_phash(sha256=None, phash=None, ext=None, url=None, context={}):
   """Add a file to the table"""
-  rec = FileTable(sha256=sha256, phash=phash, ext=ext, url=url)
+  rec = FileTable(sha256=sha256, phash=phash, ext=ext, url=url, context=context)
   session = Session()
-  session.add(rec)
-  session.commit()
-  session.flush()
+  try:
+    session.add(rec)
+    session.commit()
+    session.flush()
+  except sqlalchemy.exc.IntegrityError:
+    session.rollback()
+    return False
 
+  return True
 
-def add_phash_by_filename(path):
+def add_phash_by_filename(path, context={}):
   """Add a file by filename, getting all the necessary attributes"""
   print(path)
   if not os.path.exists(path):
@@ -96,7 +139,5 @@ def add_phash_by_filename(path):
 
   im = Image.open(path).convert('RGB')
   phash = compute_phash_int(im)
-
   hash = sha256(path)
-
-  add_phash(sha256=hash, phash=phash, ext=ext, url=path)
+  add_phash(sha256=hash, phash=phash, ext=ext, url=path, context=context)

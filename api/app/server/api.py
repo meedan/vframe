@@ -3,6 +3,7 @@ import os
 import re
 import time
 import logging
+import json
 from pathlib import Path
 import urllib.request
 
@@ -57,9 +58,11 @@ def get_params(default_threshold=MATCH_THRESHOLD, default_limit=MATCH_LIMIT):
     threshold = int(request.form.get('threshold') or default_threshold)
     limit = int(request.form.get('limit') or default_limit)
     offset = int(request.form.get('offset') or 0)
+    context = json.loads(request.form.get('context') or '{}')
+    filter =  json.loads(request.form.get('filter') or '{}')
   except:
     return None, 'param_error'
-  
+
   # Process uploaded file
   if 'q' in request.files:
     file = request.files['q']
@@ -71,7 +74,7 @@ def get_params(default_threshold=MATCH_THRESHOLD, default_limit=MATCH_LIMIT):
 
     basename, ext = os.path.splitext(fn)
     if ext.lower() not in valid_exts:
-      return None, 'not_an_image' 
+      return None, 'not_an_image'
     ext = ext[1:].lower()
 
     raw = None
@@ -85,7 +88,7 @@ def get_params(default_threshold=MATCH_THRESHOLD, default_limit=MATCH_LIMIT):
     raw, im = fetch_url(url)
     if raw is None:
       return raw, im # error
-  return (threshold, limit, offset, url, ext, raw, im,), None
+  return (threshold, limit, offset, url, ext, raw, im, context, filter,), None
 
 
 @api.route('/v1/match', methods=['POST'])
@@ -102,22 +105,20 @@ def match():
       'error': error,
     })
 
-  threshold, limit, offset, url, ext, raw, im = params
+  threshold, limit, offset, url, ext, raw, im, context, filter = params
 
   start = time.time()
 
   phash = compute_phash_int(im)
 
-  results = search_by_phash(phash=phash, threshold=MATCH_THRESHOLD, limit=limit, offset=0)
+  results = search_by_phash(phash=phash, threshold=MATCH_THRESHOLD, limit=limit, offset=0, filter=filter)
   match = False
   added = False
 
   if len(results) == 0:
     if url:
-      # hash = sha256_stream(file)
       hash = sha256_stream(io.BytesIO(raw))
-      add_phash(sha256=hash, phash=phash, ext=ext, url=url)
-      added = True
+      added = add_phash(sha256=hash, phash=phash, ext=ext, url=url, context=context)
   else:
     match = True
 
@@ -145,14 +146,14 @@ def similar():
       'error': error,
     })
 
-  threshold, limit, offset, url, ext, raw, im = params
+  threshold, limit, offset, url, ext, raw, im, context, filter = params
 
   start = time.time()
 
   phash = compute_phash_int(im)
   ext = ext[1:].lower()
 
-  results = search_by_phash(phash=phash, threshold=threshold, limit=limit, offset=offset)
+  results = search_by_phash(phash=phash, threshold=threshold, limit=limit, offset=offset, filter=filter)
 
   if len(results) == 0:
     match = False

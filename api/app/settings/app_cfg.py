@@ -8,9 +8,6 @@ from app.settings import types
 from app.utils import click_utils
 from pathlib import Path
 
-import codecs
-codecs.register(lambda name: codecs.lookup('utf8') if name == 'utf8mb4' else None)
-
 # -----------------------------------------------------------------------------
 # click settings
 # -----------------------------------------------------------------------------

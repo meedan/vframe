@@ -144,7 +144,7 @@ old-package.json
 
 .creds
 
-check/static/assets/js/dist/index.js
+api/static/assets/js/dist/index.js
 static/public/user_content
 
 *.obj
@@ -161,3 +161,4 @@ flask.log.*
 *.sql
 
 .idea
+.env_file
