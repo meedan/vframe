@@ -7,7 +7,7 @@ import pandas as pd
 from PIL import Image
 
 import sqlalchemy
-from sqlalchemy import create_engine, Table, Column, String, Integer, BigInteger, text
+from sqlalchemy import create_engine, Table, Column, Index, String, Integer, BigInteger, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy_utils import database_exists, create_database
@@ -57,7 +57,11 @@ class FileTable(Base):
   phash = Column(BigInteger, nullable=False, index=True)
   ext = Column(String(4, convert_unicode=True), nullable=False)
   url = Column(String(255, convert_unicode=True), nullable=False)
-  context = Column(JSONB(), default={}, nullable=False, index=True)
+  context = Column(JSONB(), default={}, nullable=False)
+  __table_args__ = (
+    Index('ix_files_context', context, postgresql_using='gin'),
+  )
+
   def toJSON(self):
     return {
       'id': self.id,
