@@ -1,3 +1,7 @@
+version: '3'
+networks:
+  dev:
+    driver: bridge
 volumes:
   postgres:
 services:
@@ -12,9 +16,7 @@ services:
     networks:
       - dev
   vframe:
-    build:
-      context: .
-      dockerfile: ./docker/Dockerfile.production
+    build: .
     volumes:
       - ".:/root/vframe"
     env_file:
