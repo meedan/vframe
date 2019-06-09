@@ -65,7 +65,7 @@ RUN apt update && \
 
 
 
-COPY  nginx/nginx.config /etc/nginx/sites-available/vframe
+COPY  docker/nginx/nginx.config /etc/nginx/sites-available/vframe
 RUN ln -s /etc/nginx/sites-available/vframe /etc/nginx/sites-enabled/vframe \
     && rm /etc/nginx/sites-enabled/default
 

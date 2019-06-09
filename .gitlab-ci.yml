@@ -1,5 +1,6 @@
 stages:
   - build
+  - test
   - deploy
 
 build_qa:
@@ -20,9 +21,28 @@ build_qa:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker build  -f docker/Dockerfile.production -t "$QA_ECR_API_BASE_URL:$CI_COMMIT_SHA"  .
     - docker push "$QA_ECR_API_BASE_URL:$CI_COMMIT_SHA"
-  only:
-    - develop
-    - feature/7594-aws-deploy
+    - docker build  -f docker/Dockerfile.production -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"  .
+    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
+
+test:
+  image: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  services:
+    - postgres:latest
+  variables:
+    DB_NAME: vframe
+    DB_USER: postgres
+    DB_PASS: postgres
+    DB_HOST: postgres
+  tags:
+    - meedan
+    - meedan-labs
+  stage: test
+  script:
+    - . /opt/conda/etc/profile.d/conda.sh
+    - conda activate vframe
+    - git clone https://${GITHUB_TOKEN}:x-oauth-basic@github.com/meedan/configurator ./configurator
+    - source configurator/check/test/vframe/.env_file
+    - cd api && FLASK_ENV=test DB_NAME=vframe_test coverage run manage.py test
 
 deploy_qa:
   image: python:3-alpine
@@ -43,4 +63,3 @@ deploy_qa:
     - echo "new Image was deployed $QA_ECR_API_BASE_URL:$CI_COMMIT_SHA"
   only:
     - develop
-    - feature/7594-aws-deploy
