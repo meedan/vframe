@@ -7,4 +7,4 @@ service nginx restart
 source activate vframe
 npm i && npm run build
 conda install -c conda-forge uwsgi
-uwsgi --ini nginx/uwsgi.ini
+uwsgi --ini docker/nginx/uwsgi.ini

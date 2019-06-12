@@ -27,7 +27,7 @@ build_qa:
 test:
   image: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
   services:
-    - postgres:latest
+    - postgres:9.6
   variables:
     DB_NAME: vframe
     DB_USER: postgres
