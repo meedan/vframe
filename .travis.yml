@@ -1,0 +1,15 @@
+sudo: required
+before_install:
+- sudo service postgresql stop
+- while sudo lsof -Pi :5432 -sTCP:LISTEN -t; do sleep 1; done
+- git clone https://${TOKEN}:x-oauth-basic@github.com/meedan/configurator ./configurator
+- d=configurator/check/travis/vframe/; for f in $(find $d -type f); do cp "$f" "${f/$d/}"; done
+- docker-compose pull
+- docker-compose up -d
+- wget -q --waitretry=5 --retry-connrefused -t 20 -T 10 -O - http://127.0.0.1:5000
+script:
+- docker-compose exec vframe bash -c ". /opt/conda/etc/profile.d/conda.sh && conda activate vframe && cd api && coverage
+  run manage.py test"
+notifications:
+  slack:
+    secure: h2rCsyn94KZCTN/RWsT5V04KsM4DzpvDO8hFcEOOnten0dglaHZMsU9iohEguCZae2PJZCV69Okk5buGAfeVAxOjBwr/0OEwHOZjooXJqEFroxadDPGA5zF3EYioxmrPVs47SsuM+63ENJWqwlm4eimxzOvoIYPf8IrV+MmXhwqAs2Pz4/HA/m6T4HGJArgDXlZeDzY+aVd/4s4QQHeDPqq65UXRBpBU5rjYFDI2N3ZBmzlrbwk/3ppMBFa8AUi+UCO/ltjFzZj4oHV1Dtwva/YuWux5T8yHlQfeEmTfZ7/moijU57OdnPgB4miQSp5+50QjlfpSGORE5sKZUNNEH5TIt3ziPtfHpzMwjxc5Qv7aO0cRHfWxDkDZR8EvUnjWpONvOkIIVKEP7H1BwX5rqmckiKIBgxybfHcSmNqyvNOFXu6MZL7Q+r95YQOt+zCaa/YoJFSOgrsbGVzh08ytCAfxf8h6mmtYNAzBJjpFqmmvTOVyRlkL1EJ+pcpTwrc9/HV9Ih87iU37ktlvraROtaCushafl9pWkQsqO5Xy3qGuHH6kxIiJgoFxlfJHo5V57KkjNjrplhs7jCcaxow5GrI9Zek9NMBQPOcGxdawRQgODQMer7UbNwrnuhXNAwYn/cri2E5QTkcONaH3w4nGJ1M6qXkSC00XFacCj8LY/Uc=

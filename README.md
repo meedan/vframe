@@ -1,5 +1,7 @@
 # VFRAME Check API
 
+[![Build Status](https://travis-ci.org/meedan/vframe.svg?branch=develop)](https://travis-ci.org/meedan/vframe)
+
 The VFRAME Check API Service uses perceptual hash to disambiguate similar images, as well as provide an image-based search engine.
 
 ## Path Structure
@@ -11,51 +13,20 @@ The VFRAME Check API Service uses perceptual hash to disambiguate similar images
 
 ## Quick Start
 
-
-Install nginx, MySQL
-
-```
-apt install git nginx mysql-server mysql-client
-mysql_secure_installation
-mysql -u root -p
-```
-
-
-Create MySQL user:
-
-```
-CREATE DATABASE vframe_check;
-CREATE USER 'vframe_check'@'localhost' IDENTIFIED BY 'some_new_password';
-GRANT ALL PRIVILEGES ON vframe_check.* to 'vframe_check'@'localhost';
-```
-
-Create a file called `.env` and put it inside the `api` folder at the root of this repo:
-
-```
-DB_HOST=localhost
-DB_NAME=vframe_check
-DB_USER=vframe_check
-DB_PASS=some_new_password
-```
-
-Install Conda or Miniconda, then install the `vframe` conda environement:
-
-```
-conda env create -f environment.yml
-```
-
-At this point, try to run the CLI processor. It should output a list of commands. Check for any `ImportErrors`.
-
-```
-python cli_proc.py
-```
-
+- Copy `.env_file.example` to `.env_file` and adjust accordingly (defaults are fine)
+- `docker-compose build`
+- `docker-compose up`
+- Demonstration page http://0.0.0.0:5000/static/demo.html
+- `docker-compose exec vframe bash`
+- `conda activate vframe`
+- `cd api && FLASK_ENV=test DB_NAME=vframe_test coverage run manage.py test`
 
 ## Importing Images
 
 The initial dataset can be hosted locally for now - make sure files are accessible inside `api/static/`.  These paths will be added directly to the dataset. These 3 examples all run the same command:
 
 ```
+cd api
 python cli_proc.py import
 python cli_proc.py import --input path/to/your/images/ --ext jpg
 python cli_proc.py import --i path/to/your/images/ --e jpg
@@ -64,25 +35,9 @@ python cli_proc.py import --i path/to/your/images/ --e jpg
 Alternatively, import a CSV of image URLs, hosted externally.  The images will be temporarily fetched and processed.
 
 ```
+cd api
 python cli_proc.py import_csv -i ../data/url_test.csv --field url
 ```
-
-## Development
-
-Start watching the frontend for changes:
-
-```
-npm run watch
-```
-
-Run the development server:
-
-```
-cd api
-python cli_flask.py run
-```
-
-Demonstration page: http://0.0.0.0:5000/static/demo.html
 
 ## Production
 
