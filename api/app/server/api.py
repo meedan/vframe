@@ -96,7 +96,7 @@ def match():
   """
   Search by uploading an image
   """
-  params, error = get_params()
+  params, error = get_params(default_threshold=MATCH_THRESHOLD, default_limit=MATCH_LIMIT)
   if error:
     return jsonify({
       'success': False,
@@ -111,7 +111,7 @@ def match():
 
   phash = compute_phash_int(im)
 
-  results = search_by_phash(phash=phash, threshold=MATCH_THRESHOLD, limit=limit, offset=0, filter=filter)
+  results = search_by_phash(phash=phash, threshold=threshold, limit=limit, offset=0, filter=filter)
   match = False
   added = False
 
