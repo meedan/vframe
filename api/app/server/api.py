@@ -44,7 +44,7 @@ def fetch_url(url):
     return None, 'not_an_image'
   ext = ext[1:].lower()
 
-  remote_request = urllib.request.Request(url)
+  remote_request = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
   remote_response = urllib.request.urlopen(remote_request)
   raw = remote_response.read()
   im = Image.open(io.BytesIO(raw)).convert('RGB')
