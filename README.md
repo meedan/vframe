@@ -1,8 +1,8 @@
-# VFRAME Check API
+# vFrame Check API
 
 [![Build Status](https://travis-ci.org/meedan/vframe.svg?branch=develop)](https://travis-ci.org/meedan/vframe)
 
-The VFRAME Check API Service uses perceptual hash to disambiguate similar images, as well as provide an image-based search engine.
+The vFrame Check API Service uses perceptual hash to disambiguate similar images, as well as provide an image-based search engine.
 
 ## Path Structure
 

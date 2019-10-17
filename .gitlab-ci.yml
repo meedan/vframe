@@ -16,7 +16,8 @@ build_qa:
     AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
   script:
     - apk add --no-cache curl jq python py-pip git
-    - pip install awscli
+    - pip install docutils==0.14
+    - pip install awscli==1.16.201
     - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker build  -f docker/Dockerfile.production -t "$QA_ECR_API_BASE_URL:$CI_COMMIT_SHA"  .
@@ -59,7 +60,7 @@ deploy_qa:
     - pip install ecs-deploy==1.7.0
     - git clone https://${GITHUB_TOKEN}:x-oauth-basic@github.com/meedan/configurator ./configurator
     - source configurator/check/qa/vframe/.env_file
-    - ecs deploy ecs-qa  qa-vframe --image qa-vframe-c $QA_ECR_API_BASE_URL:$CI_COMMIT_SHA -e qa-vframe-c DB_USER $DB_USER -e qa-vframe-c DB_PASS $DB_PASS -e qa-vframe-c DB_HOST $DB_HOST -e qa-vframe-c DB_NAME $DB_NAME --timeout -1
+    - ecs deploy ecs-qa  qa-vframe --image qa-vframe-c $QA_ECR_API_BASE_URL:$CI_COMMIT_SHA -e qa-vframe-c DB_USER $DB_USER -e qa-vframe-c DB_PASS $DB_PASS -e qa-vframe-c DB_HOST $DB_HOST -e qa-vframe-c DB_NAME $DB_NAME --timeout 3600
     - echo "new Image was deployed $QA_ECR_API_BASE_URL:$CI_COMMIT_SHA"
   only:
     - develop
@@ -77,7 +78,8 @@ build_live:
     AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
   script:
     - apk add --no-cache curl jq python py-pip git
-    - pip install awscli
+    - pip install docutils==0.14
+    - pip install awscli==1.16.201
     - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker build  -f docker/Dockerfile.production -t "$LIVE_ECR_API_BASE_URL:$CI_COMMIT_SHA"  .
@@ -88,6 +90,7 @@ build_live:
 deploy_live:
   image: python:3-alpine
   stage: deploy
+  when: manual
   tags:
     - meedan
     - meedan-labs
@@ -100,7 +103,7 @@ deploy_live:
     - pip install ecs-deploy==1.7.0
     - git clone https://${GITHUB_TOKEN}:x-oauth-basic@github.com/meedan/configurator ./configurator
     - source configurator/check/live/vframe/.env_file
-    - ecs deploy ecs-live  live-vframe --image live-vframe-c $LIVE_ECR_API_BASE_URL:$CI_COMMIT_SHA -e live-vframe-c DB_USER $DB_USER -e live-vframe-c DB_PASS $DB_PASS -e live-vframe-c DB_HOST $DB_HOST -e live-vframe-c DB_NAME $DB_NAME --timeout -1
+    - ecs deploy ecs-live  live-vframe --image live-vframe-c $LIVE_ECR_API_BASE_URL:$CI_COMMIT_SHA -e live-vframe-c DB_USER $DB_USER -e live-vframe-c DB_PASS $DB_PASS -e live-vframe-c DB_HOST $DB_HOST -e live-vframe-c DB_NAME $DB_NAME --timeout 3600
     - echo "new Image was deployed $LIVE_ECR_API_BASE_URL:$CI_COMMIT_SHA"
   only:
     - master
