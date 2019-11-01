@@ -32,7 +32,7 @@ numpy==1.16.3
 opencv-python==4.1.0.25
 pandas==0.24.2
 pathos==0.2.3
-Pillow==6.0.0
+Pillow==6.2.0
 post==2019.4.13
 pox==0.2.5
 ppft==1.6.4.9
